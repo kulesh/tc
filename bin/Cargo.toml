@@ -7,6 +7,10 @@ description.workspace = true
 repository.workspace = true
 homepage.workspace = true
 
+# Configure cargo-dist to use 'tc' as the formula name
+[package.metadata.dist]
+formula = "tc"
+
 [[bin]]
 name = "tc"
 path = "src/main.rs"

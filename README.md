@@ -25,6 +25,8 @@ brew tap kulesh/tap
 brew install tc
 ```
 
+> **Note**: The formula name is `tc` to match the Unix `wc` convention.
+
 ### From Source
 
 ```bash
