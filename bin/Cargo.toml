@@ -1,0 +1,18 @@
+[package]
+name = "token-counter-bin"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "tc"
+path = "src/main.rs"
+
+[dependencies]
+token-counter-lib = { path = "../lib" }
+anyhow.workspace = true
+clap.workspace = true
+
+[dev-dependencies]

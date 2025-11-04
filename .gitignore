@@ -1,0 +1,17 @@
+# Rust build artifacts
+/target/
+Cargo.lock
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Local configuration
+.beads/
+
+# But keep the embedded tokenizer
+!bin/assets/gpt2-tokenizer.json

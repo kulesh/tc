@@ -1,0 +1,24 @@
+[workspace]
+members = ["lib", "bin"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/token-counter"
+description = "A CLI utility for counting LLM tokens, similar to Unix wc"
+
+[workspace.dependencies]
+# Shared dependencies across workspace
+anyhow = "1.0"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
+tokenizers = "0.20"
+clap = { version = "4.5", features = ["derive"] }
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
