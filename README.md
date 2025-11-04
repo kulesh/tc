@@ -12,11 +12,31 @@ A command-line utility for counting LLM tokens in files, similar to Unix `wc` (w
 
 ## Installation
 
+### Homebrew (macOS and Linux)
+
 ```bash
-cargo build --release
+brew install kulesh/tap/tc
 ```
 
-The binary will be available at `target/release/tc`.
+Or tap first, then install:
+
+```bash
+brew tap kulesh/tap
+brew install tc
+```
+
+### From Source
+
+```bash
+cargo install --git https://github.com/kulesh/tc
+```
+
+Or build locally:
+
+```bash
+cargo build --release
+# Binary will be at target/release/tc
+```
 
 ## Usage
 
