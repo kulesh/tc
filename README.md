@@ -143,6 +143,41 @@ cargo fmt
 cargo clippy
 ```
 
+## Releases
+
+To create a new release:
+
+1. **Update the version** in `Cargo.toml`:
+   ```toml
+   [workspace.package]
+   version = "0.1.2"  # Bump to new version
+   ```
+
+2. **Commit the version bump**:
+   ```bash
+   git add Cargo.toml
+   git commit -m "Release v0.1.2"
+   ```
+
+3. **Create and push a git tag**:
+   ```bash
+   git tag v0.1.2
+   git push origin main
+   git push origin v0.1.2
+   ```
+
+4. **GitHub Actions handles the rest automatically**:
+   - Builds binaries for multiple platforms (macOS, Linux, Windows)
+   - Creates a GitHub Release with artifacts
+   - Generates and publishes Homebrew formula to [`kulesh/homebrew-tap`](https://github.com/kulesh/homebrew-tap)
+
+   Monitor the workflow at: https://github.com/kulesh/tc/actions
+
+Once the workflow completes successfully, users can install the new version via:
+```bash
+brew upgrade kulesh/tap/tc
+```
+
 ## Architecture
 
 This is a Rust workspace with two crates:
