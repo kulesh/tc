@@ -56,10 +56,16 @@ fn find_tokenizer_by_name(name: &str) -> Result<PathBuf> {
 
     // Search paths in order:
     // 1. Development: bin/assets/tokenizers/ relative to workspace root
-    // 2. Relative to executable (for installed packages: ../share/tc/tokenizers/)
+    // 2. Relative to executable (for installed packages)
+    //    - ../share/tc/tokenizers/
+    //    - ../share/tc/
     // 3. User config directory (~/.config/tc/tokenizers/)
-    // 4. Homebrew share directory (/opt/homebrew/share/tc/tokenizers/)
-    // 5. Unix share directory (/usr/local/share/tc/tokenizers/)
+    // 4. Homebrew share directory
+    //    - /opt/homebrew/share/tc/tokenizers/
+    //    - /opt/homebrew/share/tc/
+    // 5. Unix share directory
+    //    - /usr/local/share/tc/tokenizers/
+    //    - /usr/local/share/tc/
 
     let mut search_paths = Vec::new();
 
@@ -74,7 +80,10 @@ fn find_tokenizer_by_name(name: &str) -> Result<PathBuf> {
     // 2. Relative to executable (for installed packages)
     if let Ok(exe_path) = env::current_exe() {
         if let Some(exe_dir) = exe_path.parent() {
+            // Try with tokenizers subdirectory
             search_paths.push(exe_dir.join("../share/tc/tokenizers").join(&filename));
+            // Try without subdirectory (cargo-dist installs to share/tc/ directly)
+            search_paths.push(exe_dir.join("../share/tc").join(&filename));
         }
     }
 
@@ -83,11 +92,13 @@ fn find_tokenizer_by_name(name: &str) -> Result<PathBuf> {
         search_paths.push(PathBuf::from(home).join(".config/tc/tokenizers").join(&filename));
     }
 
-    // 4. Homebrew
+    // 4. Homebrew (try both with and without tokenizers subdirectory)
     search_paths.push(PathBuf::from("/opt/homebrew/share/tc/tokenizers").join(&filename));
+    search_paths.push(PathBuf::from("/opt/homebrew/share/tc").join(&filename));
 
-    // 5. Unix standard
+    // 5. Unix standard (try both with and without tokenizers subdirectory)
     search_paths.push(PathBuf::from("/usr/local/share/tc/tokenizers").join(&filename));
+    search_paths.push(PathBuf::from("/usr/local/share/tc").join(&filename));
 
     // Search for the file
     for path in &search_paths {
