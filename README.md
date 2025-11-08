@@ -80,25 +80,44 @@ Show specific metrics:
 tc --lines --bytes file.txt
 ```
 
-### Custom Tokenizers
+### Tokenizers
 
-By default, `tc` uses an embedded GPT-2 tokenizer. To use a different tokenizer, provide a path with `--tokenizer`:
+By default, `tc` uses an embedded GPT-2 tokenizer (no setup required!).
 
-```bash
-tc --tokenizer custom-tokenizer.json file.txt
-```
+#### Shipped Tokenizers
 
-You can download other tokenizers from Hugging Face:
+`tc` ships with additional popular tokenizers. Use `--tokenizer-name` (or `-n`) to select them:
 
 **GPT-4 (cl100k_base):**
 ```bash
-# Download from OpenAI's tiktoken repository or Hugging Face models
+tc --tokenizer-name gpt4 file.txt
+# or short form:
+tc -n gpt4 file.txt
 ```
 
-**BERT:**
+**BERT (base-uncased):**
 ```bash
-curl -o bert-tokenizer.json https://huggingface.co/bert-base-uncased/resolve/main/tokenizer.json
-tc --tokenizer bert-tokenizer.json file.txt
+tc --tokenizer-name bert file.txt
+```
+
+Available shipped tokenizers:
+- `gpt4` - GPT-4 / GPT-3.5-turbo (cl100k_base encoding)
+- `bert` - BERT base uncased
+
+#### Custom Tokenizers
+
+To use your own tokenizer JSON file, use `--tokenizer-path` (or `-t`):
+
+```bash
+tc --tokenizer-path /path/to/custom-tokenizer.json file.txt
+# or short form:
+tc -t custom.json file.txt
+```
+
+You can download other tokenizers from Hugging Face. For example:
+```bash
+curl -o claude-tokenizer.json https://huggingface.co/Xenova/claude-tokenizer/resolve/main/tokenizer.json
+tc --tokenizer-path claude-tokenizer.json file.txt
 ```
 
 ## Examples
@@ -121,6 +140,18 @@ tc --lines file.txt
 Check token count before sending to an API:
 ```bash
 cat prompt.txt | tc
+```
+
+Compare token counts across different tokenizers:
+```bash
+# GPT-2 (default)
+tc document.txt
+
+# GPT-4
+tc -n gpt4 document.txt
+
+# BERT
+tc -n bert document.txt
 ```
 
 ## Development

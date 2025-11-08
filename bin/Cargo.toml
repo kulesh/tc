@@ -10,6 +10,8 @@ homepage.workspace = true
 # Configure cargo-dist to use 'tc' as the formula name
 [package.metadata.dist]
 formula = "tc"
+# Include tokenizer files in the distribution
+include = ["assets/tokenizers/*.json"]
 
 [[bin]]
 name = "tc"

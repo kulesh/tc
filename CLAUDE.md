@@ -132,8 +132,9 @@ This is a **Rust workspace** with two crates:
 - **Binary name**: `tc`
 - **Purpose**: CLI for counting LLM tokens, similar to Unix `wc`
 - **Default tokenizer**: Embedded GPT-2 tokenizer (~1.4MB)
+- **Shipped tokenizers**: GPT-4 (cl100k_base), BERT (base-uncased)
 - **Error handling**: Uses `anyhow` for application errors
-- **CLI features**: Multiple files, stdin support, flexible output options, custom tokenizer support
+- **CLI features**: Multiple files, stdin support, flexible output options, named and custom tokenizer support
 - **Dependency**: Depends on `token-counter-lib`
 
 ### Workspace Configuration
@@ -154,11 +155,31 @@ The root `Cargo.toml` defines:
 - Binary can have more dependencies as needed (`clap`, `anyhow`)
 - Shared dependencies defined in workspace `Cargo.toml`
 
-### Embedded Tokenizer
+### Tokenizer System
+**Embedded Tokenizer:**
 - GPT-2 tokenizer embedded in binary using `include_bytes!()` macro
 - Located at `bin/assets/gpt2-tokenizer.json`
 - Allows `tc` to work without external configuration (like Unix `wc`)
-- Custom tokenizers can still be used with `--tokenizer` flag
+- Default when no tokenizer flags are specified
+
+**Shipped Tokenizers:**
+- Additional tokenizers shipped with the distribution (not embedded)
+- Located at `bin/assets/tokenizers/` (gpt4.json, bert.json)
+- Installed to system share directories during package installation
+  - Homebrew: `/opt/homebrew/share/tc/tokenizers/`
+  - Unix: `/usr/local/share/tc/tokenizers/`
+  - User config: `~/.config/tc/tokenizers/`
+- Accessed via `--tokenizer-name` (or `-n`) flag
+
+**Custom Tokenizers:**
+- Users can provide their own tokenizer JSON files
+- Accessed via `--tokenizer-path` (or `-t`) flag
+- Supports any Hugging Face compatible tokenizer format
+
+**CLI Flags:**
+- `--tokenizer-name <NAME>` or `-n <NAME>` - Use shipped tokenizer (e.g., "gpt4", "bert")
+- `--tokenizer-path <PATH>` or `-t <PATH>` - Use custom tokenizer from path
+- Flags are mutually exclusive (enforced by clap argument groups)
 
 ## Development Notes
 

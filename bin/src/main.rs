@@ -4,6 +4,7 @@
 
 use anyhow::{Context, Result};
 use clap::Parser;
+use std::env;
 use std::io::{self, IsTerminal};
 use std::path::PathBuf;
 use token_counter_lib::{
@@ -22,9 +23,13 @@ struct Args {
     #[arg(value_name = "FILE")]
     files: Vec<PathBuf>,
 
-    /// Path to custom tokenizer JSON file (uses embedded GPT-2 tokenizer by default)
-    #[arg(short = 't', long, value_name = "PATH")]
-    tokenizer: Option<PathBuf>,
+    /// Path to custom tokenizer JSON file
+    #[arg(short = 't', long, value_name = "PATH", group = "tokenizer")]
+    tokenizer_path: Option<PathBuf>,
+
+    /// Named tokenizer to use (e.g., "gpt4", "bert")
+    #[arg(short = 'n', long, value_name = "NAME", group = "tokenizer")]
+    tokenizer_name: Option<String>,
 
     /// Show only token count
     #[arg(long)]
@@ -43,6 +48,63 @@ struct OutputConfig {
     show_tokens: bool,
     show_lines: bool,
     show_bytes: bool,
+}
+
+/// Find a tokenizer by name in standard directories
+fn find_tokenizer_by_name(name: &str) -> Result<PathBuf> {
+    let filename = format!("{}.json", name);
+
+    // Search paths in order:
+    // 1. Development: bin/assets/tokenizers/ relative to workspace root
+    // 2. Relative to executable (for installed packages: ../share/tc/tokenizers/)
+    // 3. User config directory (~/.config/tc/tokenizers/)
+    // 4. Homebrew share directory (/opt/homebrew/share/tc/tokenizers/)
+    // 5. Unix share directory (/usr/local/share/tc/tokenizers/)
+
+    let mut search_paths = Vec::new();
+
+    // 1. Development path (relative to executable in target/release or target/debug)
+    if let Ok(exe_path) = env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            // For cargo run/build: target/{debug,release} -> ../../bin/assets/tokenizers/
+            search_paths.push(exe_dir.join("../../bin/assets/tokenizers").join(&filename));
+        }
+    }
+
+    // 2. Relative to executable (for installed packages)
+    if let Ok(exe_path) = env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            search_paths.push(exe_dir.join("../share/tc/tokenizers").join(&filename));
+        }
+    }
+
+    // 3. User config directory
+    if let Some(home) = env::var_os("HOME") {
+        search_paths.push(PathBuf::from(home).join(".config/tc/tokenizers").join(&filename));
+    }
+
+    // 4. Homebrew
+    search_paths.push(PathBuf::from("/opt/homebrew/share/tc/tokenizers").join(&filename));
+
+    // 5. Unix standard
+    search_paths.push(PathBuf::from("/usr/local/share/tc/tokenizers").join(&filename));
+
+    // Search for the file
+    for path in &search_paths {
+        if path.exists() {
+            return Ok(path.clone());
+        }
+    }
+
+    // Not found in any standard location
+    anyhow::bail!(
+        "Tokenizer '{}' not found. Searched in:\n  {}",
+        name,
+        search_paths.iter()
+            .map(|p| p.display().to_string())
+            .collect::<Vec<_>>()
+            .join("\n  ")
+    )
 }
 
 impl OutputConfig {
@@ -84,11 +146,19 @@ fn main() -> Result<()> {
     let args = Args::parse();
     let output_config = OutputConfig::from_args(&args);
 
-    // Load tokenizer (use embedded GPT-2 by default, or custom if specified)
-    let tokenizer = if let Some(tokenizer_path) = &args.tokenizer {
+    // Load tokenizer based on user input
+    let tokenizer = if let Some(tokenizer_path) = &args.tokenizer_path {
+        // Explicit path provided
         load_tokenizer(tokenizer_path)
             .with_context(|| format!("Failed to load tokenizer from {:?}", tokenizer_path))?
+    } else if let Some(tokenizer_name) = &args.tokenizer_name {
+        // Named tokenizer (find in standard directories)
+        let path = find_tokenizer_by_name(tokenizer_name)
+            .with_context(|| format!("Failed to find tokenizer '{}'", tokenizer_name))?;
+        load_tokenizer(&path)
+            .with_context(|| format!("Failed to load tokenizer from {:?}", path))?
     } else {
+        // Default: use embedded GPT-2 tokenizer
         load_tokenizer_from_bytes(DEFAULT_TOKENIZER)
             .context("Failed to load embedded GPT-2 tokenizer")?
     };
