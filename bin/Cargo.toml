@@ -11,7 +11,10 @@ homepage.workspace = true
 [package.metadata.dist]
 formula = "tc"
 # Include tokenizer files in the distribution
-include = ["assets/tokenizers/*.json"]
+include = [
+  "assets/tokenizers/gpt4.json",
+  "assets/tokenizers/bert.json"
+]
 
 [[bin]]
 name = "tc"
